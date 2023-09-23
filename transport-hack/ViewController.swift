@@ -81,7 +81,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
     
     func fetchNearbyBusStops(location: CLLocation) {
         let radius: Double = 1000
-        let apiKey = "YOUR_API_KEY_HERE" // Replace with your Google Places API Key
+        let apiKey = "AIzaSyDPEV1OqNFXW3_zZlxln-wt3Mi70g0aptQ" // Replace with your Google Places API Key
         let urlString = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=\(location.coordinate.latitude),\(location.coordinate.longitude)&radius=\(radius)&type=bus_station&key=\(apiKey)"
         
         if let url = URL(string: urlString) {
