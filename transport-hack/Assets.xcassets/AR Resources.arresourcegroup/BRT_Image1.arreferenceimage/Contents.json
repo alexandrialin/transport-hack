@@ -1,0 +1,15 @@
+{
+  "images" : [
+    {
+      "filename" : "BRT_Image1.jpg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "properties" : {
+    "width" : 0
+  }
+}
