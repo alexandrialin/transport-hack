@@ -10,11 +10,10 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         print("running")
         
-        // Use ARWorldTrackingConfiguration for vertical surfaces
-        let configuration = ARWorldTrackingConfiguration()
+        let configuration = ARImageTrackingConfiguration()
 
-        if let trackedImages = ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: Bundle.main) {
-            configuration.detectionImages = trackedImages
+        if let trackedImages = ARReferenceImage.referenceImages(inGroupNamed: "Your AR Resource Group Name", bundle: Bundle.main) {
+            configuration.trackingImages = trackedImages
             configuration.maximumNumberOfTrackedImages = 2
         }
         
@@ -23,7 +22,6 @@ class ViewController: UIViewController {
         arView.session.delegate = self
     }
 }
-
 extension ViewController: ARSessionDelegate {
     
     func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
@@ -31,17 +29,15 @@ extension ViewController: ARSessionDelegate {
             if let imageAnchor = anchor as? ARImageAnchor {
                 let referenceImageName = imageAnchor.referenceImage.name
                 
-                // Print the name of the recognized image:
+                // Now handle the recognized image.
+                // For this example, let's just print the name of the recognized image:
                 print("Recognized image: \(referenceImageName ?? "Unknown")")
                 
-                // Create a text entity for the recognized image
+                // Here, you can add RealityKit entities or other actions based on the recognized image.
+                // Example: Display a text entity above the recognized image.
                 let textEntity = ModelEntity(mesh: .generateText(referenceImageName ?? "Unknown"))
                 textEntity.scale = [0.001, 0.001, 0.001] // scale down the text size for AR
-                
-                // Adjust the text entity's orientation for vertical surfaces
-                textEntity.transform.rotation = simd_quatf(angle: -Float.pi / 2, axis: [1, 0, 0])
-                textEntity.scale = [0.001, 0.001, -0.001] // Mirror along the z-axis
-
+                arView.installGestures([.all], for: textEntity)
                 
                 let anchorEntity = AnchorEntity(anchor: imageAnchor)
                 anchorEntity.addChild(textEntity)
