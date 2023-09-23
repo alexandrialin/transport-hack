@@ -48,6 +48,7 @@
 		1E2BC79E2ABEEAD00071EC73 /* transport-hackUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "transport-hackUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E2BC7A22ABEEAD00071EC73 /* transport_hackUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = transport_hackUITests.swift; sourceTree = "<group>"; };
 		1E2BC7A42ABEEAD00071EC73 /* transport_hackUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = transport_hackUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		1ED384232ABF93E000210199 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +99,7 @@
 		1E2BC7812ABEEACF0071EC73 /* transport-hack */ = {
 			isa = PBXGroup;
 			children = (
+				1ED384232ABF93E000210199 /* Info.plist */,
 				1E2BC7822ABEEACF0071EC73 /* AppDelegate.swift */,
 				1E2BC7842ABEEACF0071EC73 /* ViewController.swift */,
 				1E2BC7862ABEEACF0071EC73 /* Experience.rcproject */,
@@ -437,6 +439,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = X798TJWGDW;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "transport-hack/Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -467,6 +470,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = X798TJWGDW;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "transport-hack/Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
