@@ -2,6 +2,7 @@ import UIKit
 import RealityKit
 import ARKit
 import CoreLocation
+import Vision
 
 class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDelegate, UITableViewDelegate, UITableViewDataSource {
     
@@ -10,17 +11,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
     var locationManager: CLLocationManager!
     var userLocation: CLLocation?
     var busStops: [BusStop] = []
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         print("ViewController initialized")
-
+        
         // Core Location Setup
         locationManager = CLLocationManager()
         locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
-
+        
         // AR Configuration
         let configuration = ARWorldTrackingConfiguration()
         if let trackedImages = ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: Bundle.main) {
@@ -29,7 +30,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
         }
         arView.session.run(configuration)
         arView.session.delegate = self
-
+        
         // Set up constraints for ARView
         arView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -38,7 +39,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
             arView.rightAnchor.constraint(equalTo: view.rightAnchor),
             arView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.7)
         ])
-
+        
         // Setup the table view
         setupTableView()
     }
@@ -49,7 +50,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "BusStopCell")
-
+        
         // Constraints for the tableView to occupy the bottom part of the screen
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: arView.bottomAnchor),
@@ -77,6 +78,42 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
             userLocation = location
             fetchNearbyBusStops(location: location)
         }
+    }
+    
+    func recognizeStopID(in image: UIImage, completion: @escaping (String?) -> Void) {
+        guard let cgImage = image.cgImage else {
+            completion(nil)
+            return
+        }
+        
+        let requestHandler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+        let request = VNRecognizeTextRequest { (request, error) in
+            if let error = error {
+                print("Failed to recognize text: \(error)")
+                completion(nil)
+                return
+            }
+            
+            guard let observations = request.results as? [VNRecognizedTextObservation] else {
+                completion(nil)
+                return
+            }
+            
+            for observation in observations {
+                let potentialText = observation.topCandidates(1).first?.string ?? ""
+                let components = potentialText.split(separator: " ")
+                if let index = components.firstIndex(where: { $0.caseInsensitiveCompare("Stop") == .orderedSame }), index < components.count - 2, components[index + 1].caseInsensitiveCompare("ID") == .orderedSame {
+                    let stopID = components[index + 2]
+                    completion(String(stopID))
+                    return
+                }
+
+            }
+
+            completion(nil)
+        }
+        
+        try? requestHandler.perform([request])
     }
     
     func fetchNearbyBusStops(location: CLLocation) {
@@ -114,7 +151,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
                             } else {
                                 // Print the fetched bus stops to the console
                                 for busStop in self.busStops {
-                                    print("Bus Stop ID: \(busStop.id), Name: \(busStop.name), Location: \(busStop.location.coordinate.latitude), \(busStop.location.coordinate.longitude)")
+                                    print("Stop ID: \(busStop.id), Name: \(busStop.name), Location: \(busStop.location.coordinate.latitude), \(busStop.location.coordinate.longitude)")
                                 }
                             }
                             
@@ -129,32 +166,37 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
             }.resume()
         }
     }
-
-
-
-
+    
     // ARSession delegate
     func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
         for anchor in anchors {
-            if let imageAnchor = anchor as? ARImageAnchor {
-                let referenceImageName = imageAnchor.referenceImage.name
-                print("Recognized image: \(referenceImageName ?? "Unknown")")
+            if let imageAnchor = anchor as? ARImageAnchor,
+               let image = UIImage(named: imageAnchor.referenceImage.name ?? "") {  // Assuming you have a UIImage with the same name
+                recognizeStopID(in: image) { stopID in
+                    guard let id = stopID else {
+                        print("Failed to recognize the Stop ID in the image.")
+                        return
+                    }
+                    
+                    print("Recognized Stop ID: \(id)")
+                    
+                    let textEntity = ModelEntity(mesh: .generateText("Stop ID: \(id)"))
+                    textEntity.scale = [0.001, 0.001, 0.001]
+                    textEntity.transform.rotation = simd_quatf(angle: -Float.pi / 2, axis: [1, 0, 0])
+                    textEntity.scale = [0.001, 0.001, -0.001]
 
-                let textEntity = ModelEntity(mesh: .generateText(referenceImageName ?? "Unknown"))
-                textEntity.scale = [0.001, 0.001, 0.001]
-                textEntity.transform.rotation = simd_quatf(angle: -Float.pi / 2, axis: [1, 0, 0])
-                textEntity.scale = [0.001, 0.001, -0.001]
-
-                let anchorEntity = AnchorEntity(anchor: imageAnchor)
-                anchorEntity.addChild(textEntity)
-                arView.scene.addAnchor(anchorEntity)
+                    let anchorEntity = AnchorEntity(anchor: imageAnchor)
+                    anchorEntity.addChild(textEntity)
+                    self.arView.scene.addAnchor(anchorEntity)
+                }
             }
         }
     }
+    
 }
 
 struct BusStop {
-    let id: String
-    let name: String
-    let location: CLLocation
+    var id: String
+    var name: String
+    var location: CLLocation
 }
