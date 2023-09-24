@@ -16,6 +16,10 @@
 		1E2BC7992ABEEAD00071EC73 /* transport_hackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E2BC7982ABEEAD00071EC73 /* transport_hackTests.swift */; };
 		1E2BC7A32ABEEAD00071EC73 /* transport_hackUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E2BC7A22ABEEAD00071EC73 /* transport_hackUITests.swift */; };
 		1E2BC7A52ABEEAD00071EC73 /* transport_hackUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E2BC7A42ABEEAD00071EC73 /* transport_hackUITestsLaunchTests.swift */; };
+		1E8D64DC2ABFCA6600225CAD /* DetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8D64DB2ABFCA6600225CAD /* DetailsViewController.swift */; };
+		1E8D64DE2ABFCD1500225CAD /* PredictionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8D64DD2ABFCD1500225CAD /* PredictionCell.swift */; };
+		1E8D64E02ABFF06900225CAD /* PredictionTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8D64DF2ABFF06900225CAD /* PredictionTableViewCell.swift */; };
+		1E8D64E42AC012D000225CAD /* ARBusStopPointer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8D64E32AC012D000225CAD /* ARBusStopPointer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +52,11 @@
 		1E2BC79E2ABEEAD00071EC73 /* transport-hackUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "transport-hackUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E2BC7A22ABEEAD00071EC73 /* transport_hackUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = transport_hackUITests.swift; sourceTree = "<group>"; };
 		1E2BC7A42ABEEAD00071EC73 /* transport_hackUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = transport_hackUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		1E8D64DB2ABFCA6600225CAD /* DetailsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsViewController.swift; sourceTree = "<group>"; };
+		1E8D64DD2ABFCD1500225CAD /* PredictionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PredictionCell.swift; sourceTree = "<group>"; };
+		1E8D64DF2ABFF06900225CAD /* PredictionTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PredictionTableViewCell.swift; sourceTree = "<group>"; };
+		1E8D64E32AC012D000225CAD /* ARBusStopPointer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARBusStopPointer.swift; sourceTree = "<group>"; };
+		1ED384232ABF93E000210199 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,12 +107,17 @@
 		1E2BC7812ABEEACF0071EC73 /* transport-hack */ = {
 			isa = PBXGroup;
 			children = (
+				1ED384232ABF93E000210199 /* Info.plist */,
 				1E2BC7822ABEEACF0071EC73 /* AppDelegate.swift */,
 				1E2BC7842ABEEACF0071EC73 /* ViewController.swift */,
 				1E2BC7862ABEEACF0071EC73 /* Experience.rcproject */,
 				1E2BC7882ABEEACF0071EC73 /* Main.storyboard */,
 				1E2BC78B2ABEEAD00071EC73 /* Assets.xcassets */,
 				1E2BC78D2ABEEAD00071EC73 /* LaunchScreen.storyboard */,
+				1E8D64DB2ABFCA6600225CAD /* DetailsViewController.swift */,
+				1E8D64DD2ABFCD1500225CAD /* PredictionCell.swift */,
+				1E8D64DF2ABFF06900225CAD /* PredictionTableViewCell.swift */,
+				1E8D64E32AC012D000225CAD /* ARBusStopPointer.swift */,
 			);
 			path = "transport-hack";
 			sourceTree = "<group>";
@@ -258,7 +272,11 @@
 			files = (
 				1E2BC7852ABEEACF0071EC73 /* ViewController.swift in Sources */,
 				1E2BC7832ABEEACF0071EC73 /* AppDelegate.swift in Sources */,
+				1E8D64E42AC012D000225CAD /* ARBusStopPointer.swift in Sources */,
+				1E8D64E02ABFF06900225CAD /* PredictionTableViewCell.swift in Sources */,
 				1E2BC7872ABEEACF0071EC73 /* Experience.rcproject in Sources */,
+				1E8D64DE2ABFCD1500225CAD /* PredictionCell.swift in Sources */,
+				1E8D64DC2ABFCA6600225CAD /* DetailsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -437,6 +455,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = X798TJWGDW;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "transport-hack/Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -467,6 +486,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = X798TJWGDW;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "transport-hack/Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
