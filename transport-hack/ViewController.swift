@@ -11,9 +11,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
     var locationManager: CLLocationManager!
     var userLocation: CLLocation?
     var busStops: [BusStop] = []
+    var busStopAnchors: [AnchorEntity] = []
     // Change selectedPrediction to selectedPredictions and adjust its type
     var selectedPredictions: [Prediction]?
+    var arrowEntity: ModelEntity?
+    var currentTextAnchor: AnchorEntity?
+    let busStopLabel = UILabel()
     
+
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,6 +30,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
         locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.distanceFilter = kCLDistanceFilterNone
+        locationManager.stopUpdatingLocation()
+        locationManager.startUpdatingLocation()
+
         
         // AR Configuration
         let configuration = ARWorldTrackingConfiguration()
@@ -42,7 +53,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
             arView.rightAnchor.constraint(equalTo: view.rightAnchor),
             arView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.7)
         ])
-        
+        setupBusStopLabel()
+        pointArrowTowardsNearestBusStop()
         // Setup the table view
         setupTableView()
     }
@@ -79,9 +91,58 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
         if let location = locations.last {
             print("Location Updated: \(location)")
             userLocation = location
+
+            // Always update the arrow's rotation to the nearest bus stop
+            updateNearestBusStopLabel()
+
             fetchNearbyBusStops(location: location)
+            
         }
     }
+    func updateNearestBusStopLabel() {
+        guard let userLocation = userLocation, !busStops.isEmpty else { return }
+
+        // Sort the bus stops by their distance to the user
+        let sortedBusStops = busStops.sorted {
+            let distance1 = userLocation.distance(from: $0.location)
+            let distance2 = userLocation.distance(from: $1.location)
+            return distance1 < distance2
+        }
+
+        // Get up to the nearest 4 bus stops
+        let nearestFourBusStops = Array(sortedBusStops.prefix(4))
+
+        // Construct the label string
+        var labelText = ""
+        for (index, busStop) in nearestFourBusStops.enumerated() {
+            let distance = userLocation.distance(from: busStop.location)
+            labelText += "Bus Stop \(index + 1): \(busStop.name)\nDistance: \(String(format: "%.2f", distance)) meters\n\n"
+        }
+
+        // Update the label
+        busStopLabel.text = labelText
+    }
+
+
+
+
+    func setupBusStopLabel() {
+        let labelHeight: CGFloat = 200  // Adjust as needed
+        let topPadding: CGFloat = 40  // Adjust this value for desired padding from the top
+
+        busStopLabel.frame = CGRect(x: 0, y: topPadding, width: UIScreen.main.bounds.width, height: labelHeight)
+        busStopLabel.textAlignment = .left  // Or .center if you want it centered
+        busStopLabel.textColor = .white
+        busStopLabel.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        busStopLabel.numberOfLines = 0
+        busStopLabel.layer.cornerRadius = 10
+        busStopLabel.clipsToBounds = true
+
+        view.addSubview(busStopLabel)
+    }
+
+
+
     
     func recognizeStopID(in image: UIImage, completion: @escaping (String?) -> Void) {
         guard let cgImage = image.cgImage else {
@@ -155,11 +216,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
                                 // Print the fetched bus stops to the console
                                 for busStop in self.busStops {
                                     print("Stop ID: \(busStop.id), Name: \(busStop.name), Location: \(busStop.location.coordinate.latitude), \(busStop.location.coordinate.longitude)")
+                                    
                                 }
                             }
                             
                             DispatchQueue.main.async {
                                 self.tableView.reloadData()
+                                self.pointArrowTowardsNearestBusStop()
+                                self.updateNearestBusStopLabel()
+                                
                             }
                         }
                     } catch {
@@ -240,10 +305,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
                         
                         let predictions = try decoder.decode([Prediction].self, from: data)
                         
-                        // Sort predictions by PredictedDeparture
+                        // Sort the predictions based on the PredictedDeparture date
                         let sortedPredictions = predictions.sorted(by: { $0.PredictedDeparture < $1.PredictedDeparture })
                         
-                        // Get the first 5 items
+                        // Take the next five predictions
                         let nextFivePredictions = Array(sortedPredictions.prefix(5))
                         
                         completion(nextFivePredictions)
@@ -257,6 +322,55 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
             }.resume()
         }
     }
+    
+    func pointArrowTowardsNearestBusStop() {
+        guard let userLocation = userLocation else {
+            print("User location is not available.")
+            return
+        }
+
+        // Simply call the new function
+        updateNearestBusStopLabel()
+    }
+
+
+
+
+
+
+
+
+    func calculateAngleBetween(_ userLocation: CLLocation, and busStopLocation: CLLocation) -> Double {
+        let dx = busStopLocation.coordinate.longitude - userLocation.coordinate.longitude
+        let dy = busStopLocation.coordinate.latitude - userLocation.coordinate.latitude
+        
+        let angle = atan2(dy, dx)
+        return -angle // Negative because Y-axis rotation in RealityKit is opposite to 2D coordinate rotation
+    }
+
+}
+
+extension CLLocationCoordinate2D {
+    func bearing(to point: CLLocationCoordinate2D) -> Float {
+        let lat1 = self.latitude.degreesToRadians
+        let lon1 = self.longitude.degreesToRadians
+
+        let lat2 = point.latitude.degreesToRadians
+        let lon2 = point.longitude.degreesToRadians
+
+        let dLon = lon2 - lon1
+
+        let y = sin(dLon) * cos(lat2)
+        let x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
+
+        let radiansBearing = atan2(y, x)
+
+        return Float(radiansBearing)
+    }
+}
+
+extension Double {
+    var degreesToRadians: Double { return self * .pi / 180.0 }
 }
 
 
@@ -264,7 +378,9 @@ struct BusStop {
     var id: String
     var name: String
     var location: CLLocation
+    var distanceFromUser: CLLocationDistance?  // New property
 }
+
 struct Prediction: Codable {
     var StopId: Int
     var TripId: Int
