@@ -11,6 +11,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
     var locationManager: CLLocationManager!
     var userLocation: CLLocation?
     var busStops: [BusStop] = []
+    // Change selectedPrediction to selectedPredictions and adjust its type
+    var selectedPredictions: [Prediction]?
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -107,9 +110,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
                     completion(String(stopID))
                     return
                 }
-
+                
             }
-
+            
             completion(nil)
         }
         
@@ -179,30 +182,22 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
                         return
                     }
                     
-                    // Fetch predictions for the recognized stop ID
                     self.fetchPredictions(forStopId: validStopId) { predictions in
                         if let predictions = predictions, !predictions.isEmpty {
-                            let prediction = predictions[0]
-                            print("RouteName: \(prediction.RouteName), PredictedDeparture: \(prediction.PredictedDeparture)")
+                            // Instead of taking just the first prediction, we store all the predictions
+                            self.selectedPredictions = predictions
                             
-                            // Set the prediction to be passed to the next view controller
-                            self.selectedPrediction = prediction
-                            
-                            // Perform segue to show DetailsViewController
                             DispatchQueue.main.async {
                                 self.performSegue(withIdentifier: "showDetailsSegue", sender: self)
                             }
                         }
                     }
                     
-                    // AR visualization
-                    print("Recognized Stop ID: \(id)")
-                    
                     let textEntity = ModelEntity(mesh: .generateText("Stop ID: \(id)"))
                     textEntity.scale = [0.001, 0.001, 0.001]
                     textEntity.transform.rotation = simd_quatf(angle: -Float.pi / 2, axis: [1, 0, 0])
                     textEntity.scale = [0.001, 0.001, -0.001]
-
+                    
                     let anchorEntity = AnchorEntity(anchor: imageAnchor)
                     anchorEntity.addChild(textEntity)
                     self.arView.scene.addAnchor(anchorEntity)
@@ -211,17 +206,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
         }
     }
 
-    // New variable to store the prediction before segue
-    var selectedPrediction: Prediction?
-
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showDetailsSegue",
            let detailsVC = segue.destination as? DetailsViewController {
-            detailsVC.prediction = selectedPrediction
+            detailsVC.predictions = selectedPredictions
         }
     }
 
-
+    
     func fetchPredictions(forStopId stopId: Int, completion: @escaping ([Prediction]?) -> Void) {
         let apiKey = "5BE6D03B8B0033DB1656D4FED69594ED"  // replace with your API key
         let urlString = "https://api.actransit.org/transit/stops/\(stopId)/predictions?token=\(apiKey)"
@@ -239,9 +231,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
                     
                     do {
                         // Initialize the date formatter
-                        // Initialize the date formatter
                         let dateFormatter = DateFormatter()
-                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"  
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+                        
                         // Initialize the JSON decoder
                         let decoder = JSONDecoder()
                         decoder.dateDecodingStrategy = .formatted(dateFormatter)
@@ -260,6 +252,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
     }
 }
 
+
 struct BusStop {
     var id: String
     var name: String
@@ -271,7 +264,9 @@ struct Prediction: Codable {
     var VehicleId: Int
     var RouteName: String
     var PredictedDelayInSeconds: Int
-    var PredictedDeparture: Date
+    var PredictedDeparture: Date  // Change this to Date type
     var PredictionDateTime: Date
 }
+
+
 

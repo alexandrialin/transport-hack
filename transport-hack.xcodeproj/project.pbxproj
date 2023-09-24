@@ -18,6 +18,7 @@
 		1E2BC7A52ABEEAD00071EC73 /* transport_hackUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E2BC7A42ABEEAD00071EC73 /* transport_hackUITestsLaunchTests.swift */; };
 		1E8D64DC2ABFCA6600225CAD /* DetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8D64DB2ABFCA6600225CAD /* DetailsViewController.swift */; };
 		1E8D64DE2ABFCD1500225CAD /* PredictionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8D64DD2ABFCD1500225CAD /* PredictionCell.swift */; };
+		1E8D64E02ABFF06900225CAD /* PredictionTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8D64DF2ABFF06900225CAD /* PredictionTableViewCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +53,7 @@
 		1E2BC7A42ABEEAD00071EC73 /* transport_hackUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = transport_hackUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		1E8D64DB2ABFCA6600225CAD /* DetailsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsViewController.swift; sourceTree = "<group>"; };
 		1E8D64DD2ABFCD1500225CAD /* PredictionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PredictionCell.swift; sourceTree = "<group>"; };
+		1E8D64DF2ABFF06900225CAD /* PredictionTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PredictionTableViewCell.swift; sourceTree = "<group>"; };
 		1ED384232ABF93E000210199 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -112,6 +114,7 @@
 				1E2BC78D2ABEEAD00071EC73 /* LaunchScreen.storyboard */,
 				1E8D64DB2ABFCA6600225CAD /* DetailsViewController.swift */,
 				1E8D64DD2ABFCD1500225CAD /* PredictionCell.swift */,
+				1E8D64DF2ABFF06900225CAD /* PredictionTableViewCell.swift */,
 			);
 			path = "transport-hack";
 			sourceTree = "<group>";
@@ -266,6 +269,7 @@
 			files = (
 				1E2BC7852ABEEACF0071EC73 /* ViewController.swift in Sources */,
 				1E2BC7832ABEEACF0071EC73 /* AppDelegate.swift in Sources */,
+				1E8D64E02ABFF06900225CAD /* PredictionTableViewCell.swift in Sources */,
 				1E2BC7872ABEEACF0071EC73 /* Experience.rcproject in Sources */,
 				1E8D64DE2ABFCD1500225CAD /* PredictionCell.swift in Sources */,
 				1E8D64DC2ABFCA6600225CAD /* DetailsViewController.swift in Sources */,
