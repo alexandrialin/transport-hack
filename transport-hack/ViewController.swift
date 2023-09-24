@@ -5,7 +5,7 @@ import CoreLocation
 import Vision
 
 class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDelegate, UITableViewDelegate, UITableViewDataSource {
-    
+
     @IBOutlet var arView: ARView!
     let tableView = UITableView()
     var locationManager: CLLocationManager!
@@ -69,15 +69,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
         let cell = tableView.dequeueReusableCell(withIdentifier: "BusStopCell", for: indexPath)
         cell.textLabel?.text = busStops[indexPath.row].name
         return cell
-    }
-    
-    // Core Location delegate
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.last {
-            print("Location Updated: \(location)")
-            userLocation = location
-            fetchNearbyBusStops(location: location)
-        }
     }
     
     func recognizeStopID(in image: UIImage, completion: @escaping (String?) -> Void) {
@@ -221,6 +212,73 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
         }
     }
 
+    func loadModel() {
+            guard let blueModel = try? ModelEntity.load(named: "Blue_0.usdz") else {
+                print("Failed to load the Blue_0 model.")
+                return
+            }
+
+            let anchor = AnchorEntity(world: [0, 0, -0.5]) // Adjust position as necessary
+            anchor.addChild(blueModel)
+            arView.scene.addAnchor(anchor)
+        }
+    
+    func addArrowPointingToNearestBusStop() {
+            guard let userLocation = userLocation else { return }
+
+            var nearestBusStop: BusStop?
+            var shortestDistance = Double.infinity
+
+            for busStop in busStops {
+                let distance = userLocation.distance(from: busStop.location)
+                if distance < shortestDistance {
+                    nearestBusStop = busStop
+                    shortestDistance = distance
+                }
+            }
+
+            guard let nearestStop = nearestBusStop else {
+                print("No nearby bus stop found!")
+                return
+            }
+
+            let bearing = calculateBearing(from: userLocation, to: nearestStop.location)
+            let anchorEntity = AnchorEntity(world: userLocation.coordinate.transformToARWorldPosition())
+        guard let arrowModel = try? ModelEntity.load(named: "yourConeModel.usdz") else {
+            print("Failed to load the cone model.")
+            return
+        }
+            arrowModel.transform.rotation = simd_quatf(angle: -Float.pi / 2 + Float(bearing), axis: [0, 0, 1])
+            anchorEntity.addChild(arrowModel)
+            arView.scene.addAnchor(anchorEntity)
+        }
+
+        func calculateBearing(from startLocation: CLLocation, to endLocation: CLLocation) -> Double {
+            let lat1 = startLocation.coordinate.latitude.toRadians()
+            let lon1 = startLocation.coordinate.longitude.toRadians()
+
+            let lat2 = endLocation.coordinate.latitude.toRadians()
+            let lon2 = endLocation.coordinate.longitude.toRadians()
+
+            let dLon = lon2 - lon1
+
+            let y = sin(dLon) * cos(lat2)
+            let x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
+
+            let radiansBearing = atan2(y, x)
+            return radiansBearing
+        }
+
+        func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+            if let location = locations.last {
+                print("Location Updated: \(location)")
+                userLocation = location
+                fetchNearbyBusStops(location: location)
+
+                // Call the function to add the arrow after fetching the bus stops
+                addArrowPointingToNearestBusStop()
+            }
+        }
 
     func fetchPredictions(forStopId stopId: Int, completion: @escaping ([Prediction]?) -> Void) {
         let apiKey = "5BE6D03B8B0033DB1656D4FED69594ED"  // replace with your API key
@@ -241,7 +299,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
                         // Initialize the date formatter
                         // Initialize the date formatter
                         let dateFormatter = DateFormatter()
-                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"  
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
                         // Initialize the JSON decoder
                         let decoder = JSONDecoder()
                         decoder.dateDecodingStrategy = .formatted(dateFormatter)
@@ -260,6 +318,21 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
     }
 }
 
+extension Double {
+    func toRadians() -> Double {
+        return self * .pi / 180.0
+    }
+    
+    func toDegrees() -> Double {
+        return self * 180.0 / .pi
+    }
+}
+
+extension CLLocationCoordinate2D {
+    func transformToARWorldPosition() -> SIMD3<Float> {
+        return SIMD3<Float>(Float(self.latitude), 0, Float(self.longitude))
+    }
+}
 struct BusStop {
     var id: String
     var name: String
@@ -274,4 +347,3 @@ struct Prediction: Codable {
     var PredictedDeparture: Date
     var PredictionDateTime: Date
 }
-
