@@ -5,20 +5,15 @@ import CoreLocation
 import Vision
 
 class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDelegate, UITableViewDelegate, UITableViewDataSource {
-
+    
     @IBOutlet var arView: ARView!
     let tableView = UITableView()
     var locationManager: CLLocationManager!
     var userLocation: CLLocation?
     var busStops: [BusStop] = []
-<<<<<<< Updated upstream
-=======
-    var busStopAnchors: [ARAnchor] = []
-    var arrowEntity: ModelEntity?
     // Change selectedPrediction to selectedPredictions and adjust its type
     var selectedPredictions: [Prediction]?
-    
->>>>>>> Stashed changes
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,18 +25,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
         
-        
         // AR Configuration
         let configuration = ARWorldTrackingConfiguration()
         if let trackedImages = ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: Bundle.main) {
             configuration.detectionImages = trackedImages
             configuration.maximumNumberOfTrackedImages = 2
         }
-        
-        if let arrowModel = try? Entity.load(named: "Arrow.png") as? ModelEntity {
-            arrowEntity = arrowModel
-        }
-
         arView.session.run(configuration)
         arView.session.delegate = self
         
@@ -85,6 +74,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
         return cell
     }
     
+    // Core Location delegate
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let location = locations.last {
+            print("Location Updated: \(location)")
+            userLocation = location
+            fetchNearbyBusStops(location: location)
+        }
+    }
+    
     func recognizeStopID(in image: UIImage, completion: @escaping (String?) -> Void) {
         guard let cgImage = image.cgImage else {
             completion(nil)
@@ -112,24 +110,46 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
                     completion(String(stopID))
                     return
                 }
-
+                
             }
-
+            
             completion(nil)
         }
         
         try? requestHandler.perform([request])
     }
     
+    func bearing(from: CLLocation, to: CLLocation) -> Double {
+        let lat1 = from.coordinate.latitude.toRadians()
+        let lon1 = from.coordinate.longitude.toRadians()
+        
+        let lat2 = to.coordinate.latitude.toRadians()
+        let lon2 = to.coordinate.longitude.toRadians()
+        
+        let dLon = lon2 - lon1
+        
+        let y = sin(dLon) * cos(lat2)
+        let x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
+        let radiansBearing = atan2(y, x)
+        
+        return radiansBearing.toDegrees()
+    }
+
+    extension Double {
+        func toRadians() -> Double {
+            return self * .pi / 180.0
+        }
+        
+        func toDegrees() -> Double {
+            return self * 180.0 / .pi
+        }
+    }
+
+    
     func fetchNearbyBusStops(location: CLLocation) {
         let radius: Double = 1000
         let apiKey = "AIzaSyDPEV1OqNFXW3_zZlxln-wt3Mi70g0aptQ" // Replace with your Google Places API Key
         let urlString = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=\(location.coordinate.latitude),\(location.coordinate.longitude)&radius=\(radius)&type=bus_station&key=\(apiKey)"
-        
-        DispatchQueue.main.async {
-            self.tableView.reloadData()
-            self.updateARArrows()
-        }
         
         if let url = URL(string: urlString) {
             URLSession.shared.dataTask(with: url) { (data, response, error) in
@@ -177,49 +197,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
         }
     }
     
-    func updateARArrows() {
-        guard let userLoc = userLocation, let arrowModel = arrowEntity else { return }
-        
-        // Remove old anchors
-        for anchor in busStopAnchors {
-            arView.session.remove(anchor: anchor)
-        }
-        busStopAnchors.removeAll()
-        
-        // Add new anchors for bus stops
-        for busStop in busStops {
-            let bearing = calculateBearing(userLoc.coordinate, destination: busStop.location.coordinate)
-            let transform = matrix_identity_float4x4
-            var anchor = ARAnchor(transform: transform)
-            let anchorEntity = AnchorEntity(anchor: anchor)
-            let arrowEntityClone = arrowModel.clone(recursive: true)
-            anchorEntity.addChild(arrowEntityClone)
-            anchorEntity.transform.rotation = simd_quatf(angle: Float(bearing), axis: [0, 1, 0])
-            arView.scene.addAnchor(anchorEntity)
-            busStopAnchors.append(anchor)
-        }
-    }
-
-    func calculateBearing(_ source: CLLocationCoordinate2D, destination: CLLocationCoordinate2D) -> Double {
-        let lat1 = degToRad(source.latitude)
-        let lon1 = degToRad(source.longitude)
-        
-        let lat2 = degToRad(destination.latitude)
-        let lon2 = degToRad(destination.longitude)
-        
-        let dLon = lon2 - lon1
-        
-        let y = sin(dLon) * cos(lat2)
-        let x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
-        
-        return atan2(y, x)
-    }
-
-    func degToRad(_ number: Double) -> Double {
-        return number * .pi / 180
-    }
-
-    
     // ARSession delegate
     func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
         for anchor in anchors {
@@ -232,30 +209,22 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
                         return
                     }
                     
-                    // Fetch predictions for the recognized stop ID
                     self.fetchPredictions(forStopId: validStopId) { predictions in
                         if let predictions = predictions, !predictions.isEmpty {
-                            let prediction = predictions[0]
-                            print("RouteName: \(prediction.RouteName), PredictedDeparture: \(prediction.PredictedDeparture)")
+                            // Instead of taking just the first prediction, we store all the predictions
+                            self.selectedPredictions = predictions
                             
-                            // Set the prediction to be passed to the next view controller
-                            self.selectedPrediction = prediction
-                            
-                            // Perform segue to show DetailsViewController
                             DispatchQueue.main.async {
                                 self.performSegue(withIdentifier: "showDetailsSegue", sender: self)
                             }
                         }
                     }
                     
-                    // AR visualization
-                    print("Recognized Stop ID: \(id)")
-                    
                     let textEntity = ModelEntity(mesh: .generateText("Stop ID: \(id)"))
                     textEntity.scale = [0.001, 0.001, 0.001]
                     textEntity.transform.rotation = simd_quatf(angle: -Float.pi / 2, axis: [1, 0, 0])
                     textEntity.scale = [0.001, 0.001, -0.001]
-
+                    
                     let anchorEntity = AnchorEntity(anchor: imageAnchor)
                     anchorEntity.addChild(textEntity)
                     self.arView.scene.addAnchor(anchorEntity)
@@ -264,84 +233,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
         }
     }
 
-    // New variable to store the prediction before segue
-    var selectedPrediction: Prediction?
-
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showDetailsSegue",
            let detailsVC = segue.destination as? DetailsViewController {
-            detailsVC.prediction = selectedPrediction
+            detailsVC.predictions = selectedPredictions
         }
     }
 
-    func loadModel() {
-            guard let blueModel = try? ModelEntity.load(named: "Blue_0.usdz") else {
-                print("Failed to load the Blue_0 model.")
-                return
-            }
-
-            let anchor = AnchorEntity(world: [0, 0, -0.5]) // Adjust position as necessary
-            anchor.addChild(blueModel)
-            arView.scene.addAnchor(anchor)
-        }
     
-    func addArrowPointingToNearestBusStop() {
-            guard let userLocation = userLocation else { return }
-
-            var nearestBusStop: BusStop?
-            var shortestDistance = Double.infinity
-
-            for busStop in busStops {
-                let distance = userLocation.distance(from: busStop.location)
-                if distance < shortestDistance {
-                    nearestBusStop = busStop
-                    shortestDistance = distance
-                }
-            }
-
-            guard let nearestStop = nearestBusStop else {
-                print("No nearby bus stop found!")
-                return
-            }
-
-            let bearing = calculateBearing(from: userLocation, to: nearestStop.location)
-            let anchorEntity = AnchorEntity(world: userLocation.coordinate.transformToARWorldPosition())
-        guard let arrowModel = try? ModelEntity.load(named: "yourConeModel.usdz") else {
-            print("Failed to load the cone model.")
-            return
-        }
-            arrowModel.transform.rotation = simd_quatf(angle: -Float.pi / 2 + Float(bearing), axis: [0, 0, 1])
-            anchorEntity.addChild(arrowModel)
-            arView.scene.addAnchor(anchorEntity)
-        }
-
-        func calculateBearing(from startLocation: CLLocation, to endLocation: CLLocation) -> Double {
-            let lat1 = startLocation.coordinate.latitude.toRadians()
-            let lon1 = startLocation.coordinate.longitude.toRadians()
-
-            let lat2 = endLocation.coordinate.latitude.toRadians()
-            let lon2 = endLocation.coordinate.longitude.toRadians()
-
-            let dLon = lon2 - lon1
-
-            let y = sin(dLon) * cos(lat2)
-            let x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
-
-            let radiansBearing = atan2(y, x)
-            return radiansBearing
-        }
-
-        func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-            if let location = locations.last {
-                print("Location Updated: \(location)")
-                userLocation = location
-                fetchNearbyBusStops(location: location)
-
-                // Call the function to add the arrow after fetching the bus stops
-                addArrowPointingToNearestBusStop()
-            }
-        }
-
     func fetchPredictions(forStopId stopId: Int, completion: @escaping ([Prediction]?) -> Void) {
         let apiKey = "5BE6D03B8B0033DB1656D4FED69594ED"  // replace with your API key
         let urlString = "https://api.actransit.org/transit/stops/\(stopId)/predictions?token=\(apiKey)"
@@ -359,9 +258,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
                     
                     do {
                         // Initialize the date formatter
-                        // Initialize the date formatter
                         let dateFormatter = DateFormatter()
                         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+                        
                         // Initialize the JSON decoder
                         let decoder = JSONDecoder()
                         decoder.dateDecodingStrategy = .formatted(dateFormatter)
@@ -380,21 +279,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
     }
 }
 
-extension Double {
-    func toRadians() -> Double {
-        return self * .pi / 180.0
-    }
-    
-    func toDegrees() -> Double {
-        return self * 180.0 / .pi
-    }
-}
 
-extension CLLocationCoordinate2D {
-    func transformToARWorldPosition() -> SIMD3<Float> {
-        return SIMD3<Float>(Float(self.latitude), 0, Float(self.longitude))
-    }
-}
 struct BusStop {
     var id: String
     var name: String
@@ -406,6 +291,9 @@ struct Prediction: Codable {
     var VehicleId: Int
     var RouteName: String
     var PredictedDelayInSeconds: Int
-    var PredictedDeparture: Date
+    var PredictedDeparture: Date  // Change this to Date type
     var PredictionDateTime: Date
 }
+
+
+
