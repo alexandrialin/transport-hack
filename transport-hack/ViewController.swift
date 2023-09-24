@@ -171,13 +171,24 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
     func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
         for anchor in anchors {
             if let imageAnchor = anchor as? ARImageAnchor,
-               let image = UIImage(named: imageAnchor.referenceImage.name ?? "") {  // Assuming you have a UIImage with the same name
+               let image = UIImage(named: imageAnchor.referenceImage.name ?? "") {
+                
                 recognizeStopID(in: image) { stopID in
-                    guard let id = stopID else {
+                    guard let id = stopID, let validStopId = Int(id) else {
                         print("Failed to recognize the Stop ID in the image.")
                         return
                     }
                     
+                    // Fetch predictions for the recognized stop ID
+                    self.fetchPredictions(forStopId: validStopId) { predictions in
+                        if let predictions = predictions, !predictions.isEmpty {
+                            // Assuming you want to print the first prediction for demonstration purposes
+                            let prediction = predictions[0]
+                            print("RouteName: \(prediction.RouteName), PredictedDeparture: \(prediction.PredictedDeparture)")
+                        }
+                    }
+                    
+                    // AR visualization
                     print("Recognized Stop ID: \(id)")
                     
                     let textEntity = ModelEntity(mesh: .generateText("Stop ID: \(id)"))
@@ -192,7 +203,40 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
             }
         }
     }
-    
+
+    func fetchPredictions(forStopId stopId: Int, completion: @escaping ([Prediction]?) -> Void) {
+        let apiKey = "5BE6D03B8B0033DB1656D4FED69594ED"  // replace with your API key
+        let urlString = "https://api.actransit.org/transit/stops/\(stopId)/predictions?token=\(apiKey)"
+        
+        if let url = URL(string: urlString) {
+            URLSession.shared.dataTask(with: url) { (data, response, error) in
+                if let error = error {
+                    print("Network error: \(error.localizedDescription)")
+                    completion(nil)
+                    return
+                }
+                
+                if let data = data {
+                    do {
+                        // Initialize the date formatter
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ" // Adjust this format based on the actual date format from your API response
+                        // Initialize the JSON decoder
+                        let decoder = JSONDecoder()
+                        decoder.dateDecodingStrategy = .formatted(dateFormatter)
+                        
+                        let predictions = try decoder.decode([Prediction].self, from: data)
+                        completion(predictions)
+                    } catch {
+                        print("Failed to parse JSON: \(error)")
+                        completion(nil)
+                    }
+                } else {
+                    completion(nil)
+                }
+            }.resume()
+        }
+    }
 }
 
 struct BusStop {
@@ -200,3 +244,13 @@ struct BusStop {
     var name: String
     var location: CLLocation
 }
+struct Prediction: Codable {
+    var StopId: Int
+    var TripId: Int
+    var VehicleId: Int
+    var RouteName: String
+    var PredictedDelayInSeconds: Int
+    var PredictedDeparture: Date
+    var PredictionDateTime: Date
+}
+
