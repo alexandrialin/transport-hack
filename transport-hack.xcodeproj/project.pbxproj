@@ -16,6 +16,8 @@
 		1E2BC7992ABEEAD00071EC73 /* transport_hackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E2BC7982ABEEAD00071EC73 /* transport_hackTests.swift */; };
 		1E2BC7A32ABEEAD00071EC73 /* transport_hackUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E2BC7A22ABEEAD00071EC73 /* transport_hackUITests.swift */; };
 		1E2BC7A52ABEEAD00071EC73 /* transport_hackUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E2BC7A42ABEEAD00071EC73 /* transport_hackUITestsLaunchTests.swift */; };
+		1E8D64DC2ABFCA6600225CAD /* DetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8D64DB2ABFCA6600225CAD /* DetailsViewController.swift */; };
+		1E8D64DE2ABFCD1500225CAD /* PredictionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8D64DD2ABFCD1500225CAD /* PredictionCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +50,8 @@
 		1E2BC79E2ABEEAD00071EC73 /* transport-hackUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "transport-hackUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E2BC7A22ABEEAD00071EC73 /* transport_hackUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = transport_hackUITests.swift; sourceTree = "<group>"; };
 		1E2BC7A42ABEEAD00071EC73 /* transport_hackUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = transport_hackUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		1E8D64DB2ABFCA6600225CAD /* DetailsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsViewController.swift; sourceTree = "<group>"; };
+		1E8D64DD2ABFCD1500225CAD /* PredictionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PredictionCell.swift; sourceTree = "<group>"; };
 		1ED384232ABF93E000210199 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -106,6 +110,8 @@
 				1E2BC7882ABEEACF0071EC73 /* Main.storyboard */,
 				1E2BC78B2ABEEAD00071EC73 /* Assets.xcassets */,
 				1E2BC78D2ABEEAD00071EC73 /* LaunchScreen.storyboard */,
+				1E8D64DB2ABFCA6600225CAD /* DetailsViewController.swift */,
+				1E8D64DD2ABFCD1500225CAD /* PredictionCell.swift */,
 			);
 			path = "transport-hack";
 			sourceTree = "<group>";
@@ -261,6 +267,8 @@
 				1E2BC7852ABEEACF0071EC73 /* ViewController.swift in Sources */,
 				1E2BC7832ABEEACF0071EC73 /* AppDelegate.swift in Sources */,
 				1E2BC7872ABEEACF0071EC73 /* Experience.rcproject in Sources */,
+				1E8D64DE2ABFCD1500225CAD /* PredictionCell.swift in Sources */,
+				1E8D64DC2ABFCA6600225CAD /* DetailsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

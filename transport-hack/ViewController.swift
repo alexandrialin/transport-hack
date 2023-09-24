@@ -182,9 +182,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
                     // Fetch predictions for the recognized stop ID
                     self.fetchPredictions(forStopId: validStopId) { predictions in
                         if let predictions = predictions, !predictions.isEmpty {
-                            // Assuming you want to print the first prediction for demonstration purposes
                             let prediction = predictions[0]
                             print("RouteName: \(prediction.RouteName), PredictedDeparture: \(prediction.PredictedDeparture)")
+                            
+                            // Set the prediction to be passed to the next view controller
+                            self.selectedPrediction = prediction
+                            
+                            // Perform segue to show DetailsViewController
+                            DispatchQueue.main.async {
+                                self.performSegue(withIdentifier: "showDetailsSegue", sender: self)
+                            }
                         }
                     }
                     
@@ -204,6 +211,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
         }
     }
 
+    // New variable to store the prediction before segue
+    var selectedPrediction: Prediction?
+
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showDetailsSegue",
+           let detailsVC = segue.destination as? DetailsViewController {
+            detailsVC.prediction = selectedPrediction
+        }
+    }
+
+
     func fetchPredictions(forStopId stopId: Int, completion: @escaping ([Prediction]?) -> Void) {
         let apiKey = "5BE6D03B8B0033DB1656D4FED69594ED"  // replace with your API key
         let urlString = "https://api.actransit.org/transit/stops/\(stopId)/predictions?token=\(apiKey)"
@@ -217,10 +235,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
                 }
                 
                 if let data = data {
+                    print(String(data: data, encoding: .utf8) ?? "Could not convert data to string")
+                    
                     do {
                         // Initialize the date formatter
+                        // Initialize the date formatter
                         let dateFormatter = DateFormatter()
-                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ" // Adjust this format based on the actual date format from your API response
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"  
                         // Initialize the JSON decoder
                         let decoder = JSONDecoder()
                         decoder.dateDecodingStrategy = .formatted(dateFormatter)
