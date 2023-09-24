@@ -16,6 +16,7 @@ class DetailsViewController: UIViewController, UITableViewDataSource, UITableVie
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(PredictionTableViewCell.self, forCellReuseIdentifier: "PredictionCell")
+        tableView.rowHeight = 70 // Adjust this value as needed
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

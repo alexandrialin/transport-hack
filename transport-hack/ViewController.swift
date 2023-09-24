@@ -13,7 +13,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
     var busStops: [BusStop] = []
     // Change selectedPrediction to selectedPredictions and adjust its type
     var selectedPredictions: [Prediction]?
-
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -205,14 +205,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
             }
         }
     }
-
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showDetailsSegue",
            let detailsVC = segue.destination as? DetailsViewController {
             detailsVC.predictions = selectedPredictions
         }
     }
-
+    
     
     func fetchPredictions(forStopId stopId: Int, completion: @escaping ([Prediction]?) -> Void) {
         let apiKey = "5BE6D03B8B0033DB1656D4FED69594ED"  // replace with your API key
@@ -239,7 +239,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, ARSessionDele
                         decoder.dateDecodingStrategy = .formatted(dateFormatter)
                         
                         let predictions = try decoder.decode([Prediction].self, from: data)
-                        completion(predictions)
+                        
+                        // Sort predictions by PredictedDeparture
+                        let sortedPredictions = predictions.sorted(by: { $0.PredictedDeparture < $1.PredictedDeparture })
+                        
+                        // Get the first 5 items
+                        let nextFivePredictions = Array(sortedPredictions.prefix(5))
+                        
+                        completion(nextFivePredictions)
                     } catch {
                         print("Failed to parse JSON: \(error)")
                         completion(nil)
